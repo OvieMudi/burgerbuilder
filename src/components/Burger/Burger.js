@@ -11,8 +11,6 @@ const Burger = props => {
     )
     .reduce((accumulator, element) => accumulator.concat(element), []);
 
-  console.log(ingredients);
-
   if (ingredients.length === 0) ingredients = <p>Please add ingredients</p>;
 
   return (
