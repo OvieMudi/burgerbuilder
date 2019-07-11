@@ -58,7 +58,6 @@ class BurgerBuilder extends Component {
 
   showOrderSummaryHandler = event => {
     const targetClass = event.target.className;
-    console.log(targetClass);
     if (
       targetClass.includes('Backdrop') ||
       targetClass.includes('Button_Danger')
