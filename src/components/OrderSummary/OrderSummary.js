@@ -1,6 +1,7 @@
 import React from 'react';
 
 import Aux from '../../hoc/AuxWrapper';
+import Button from '../UI/Button/Button';
 
 const OrderSummary = props => {
   const priceList = Object.keys(props.ingredients).map(ing => (
@@ -17,6 +18,12 @@ const OrderSummary = props => {
         <strong>Total Price: {props.totalPrice.toFixed(2)}</strong>
       </p>
       <p>Continue to checkout?</p>
+      <Button btnClass="Success" btnClicked={props.checkoutHandler}>
+        CONTINUE
+      </Button>
+      <Button btnClass="Danger" btnClicked={props.orderSummaryHandler}>
+        CANCEL
+      </Button>
     </Aux>
   );
 };

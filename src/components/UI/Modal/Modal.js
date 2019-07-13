@@ -3,15 +3,17 @@ import React, { Component } from 'react';
 import classes from './Modal.module.css';
 import Backdrop from '../Backdrop/Backdrop';
 import Aux from '../../../hoc/AuxWrapper';
-import Button from '../Button/Button';
 
 class Modal extends Component {
-  shouldComponentUpdate(prevState) {
-    return prevState.show !== this.props.show;
+  shouldComponentUpdate(nextProps, nextState) {
+    return (
+      nextProps.show !== this.props.show ||
+      nextProps.children !== this.props.children
+    );
   }
 
   componentWillUpdate(prevState) {
-    console.log('[Modal will update]', prevState);
+    // console.log('[Modal will update]', prevState);
   }
 
   render() {
@@ -28,12 +30,6 @@ class Modal extends Component {
         />
         <div style={style} className={classes.Modal}>
           {this.props.children}
-          <Button btnClass="Success" btnClicked={this.props.checkoutHandler}>
-            CONTINUE
-          </Button>
-          <Button btnClass="Danger" btnClicked={this.props.orderSummaryHandler}>
-            CANCEL
-          </Button>
         </div>
       </Aux>
     );

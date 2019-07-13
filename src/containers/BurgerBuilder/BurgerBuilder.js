@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
+import axios from '../../api/axiosBase';
 
 import Aux from '../../hoc/AuxWrapper';
 import Burger from '../../components/Burger/Burger';
 import BuilderControls from '../../components/BuilderControls/BuilderControls';
 import Modal from '../../components/UI/Modal/Modal';
 import OrderSummary from '../../components/OrderSummary/OrderSummary';
+import Spinner from '../../components/UI/Spinner/Spinner';
 // import classes from './BurgerBuilder.module.css';
 
 const INGREDIENTS_PRICE = {
@@ -24,7 +26,8 @@ class BurgerBuilder extends Component {
     },
     totalPrice: 3,
     purchasable: false,
-    showOrderSummary: false
+    showOrderSummary: false,
+    serverIsFetching: false
   };
 
   addIngredientsHandler = type => {
@@ -69,7 +72,33 @@ class BurgerBuilder extends Component {
   };
 
   checkoutHandler = () => {
-    alert("You're purchasing a burger!");
+    const data = {
+      ingredients: this.state.ingredients,
+      totalPrice: this.state.totalPrice,
+      customer: {
+        name: 'Hondo Onaka',
+        address: {
+          street: 'Aria-Moon, somewhere in orbit',
+          zipCode: '8383',
+          country: 'Outer Rim Remotes'
+        },
+        email: 'hondo@piratescum.com'
+      },
+      deliveryMethod: 'fastest'
+    };
+
+    this.setState({ serverIsFetching: true });
+
+    axios
+      .post('/orders.json', data)
+      .then(res => {
+        this.setState({ serverIsFetching: false, showOrderSummary: false });
+        console.log(res);
+      })
+      .catch(error => {
+        this.setState({ serverIsFetching: false, showOrderSummary: false });
+        console.log(error.message);
+      });
   };
 
   render() {
@@ -77,6 +106,16 @@ class BurgerBuilder extends Component {
     for (let key in disabledBtnInfo) {
       disabledBtnInfo[key] = disabledBtnInfo[key] <= 0;
     }
+
+    let modalContent = (
+      <OrderSummary
+        ingredients={this.state.ingredients}
+        totalPrice={this.state.totalPrice}
+        orderSummaryHandler={this.showOrderSummaryHandler}
+        checkoutHandler={this.checkoutHandler}
+      />
+    );
+    if (this.state.serverIsFetching) modalContent = <Spinner />;
 
     return (
       <Aux>
@@ -91,16 +130,7 @@ class BurgerBuilder extends Component {
             showOrderSummary={this.showOrderSummaryHandler}
           />
         </div>
-        <Modal
-          show={this.state.showOrderSummary}
-          orderSummaryHandler={this.showOrderSummaryHandler}
-          checkoutHandler={this.checkoutHandler}
-        >
-          <OrderSummary
-            ingredients={this.state.ingredients}
-            totalPrice={this.state.totalPrice}
-          />
-        </Modal>
+        <Modal show={this.state.showOrderSummary}>{modalContent}</Modal>
       </Aux>
     );
   }
