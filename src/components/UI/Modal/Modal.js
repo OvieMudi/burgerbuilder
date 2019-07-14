@@ -26,7 +26,7 @@ class Modal extends Component {
       <Aux>
         <Backdrop
           show={this.props.show}
-          cancelClick={this.props.orderSummaryHandler}
+          cancelClick={this.props.toggleHandler}
         />
         <div style={style} className={classes.Modal}>
           {this.props.children}

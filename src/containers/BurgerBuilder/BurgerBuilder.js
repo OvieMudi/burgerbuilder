@@ -130,7 +130,12 @@ class BurgerBuilder extends Component {
             showOrderSummary={this.showOrderSummaryHandler}
           />
         </div>
-        <Modal show={this.state.showOrderSummary}>{modalContent}</Modal>
+        <Modal
+          show={this.state.showOrderSummary}
+          toggleHandler={this.showOrderSummaryHandler}
+        >
+          {modalContent}
+        </Modal>
       </Aux>
     );
   }
