@@ -7,6 +7,7 @@ import BuilderControls from '../../components/BuilderControls/BuilderControls';
 import Modal from '../../components/UI/Modal/Modal';
 import OrderSummary from '../../components/OrderSummary/OrderSummary';
 import Spinner from '../../components/UI/Spinner/Spinner';
+import catchError from '../../hoc/errorCatchWrapper';
 // import classes from './BurgerBuilder.module.css';
 
 const INGREDIENTS_PRICE = {
@@ -18,17 +19,24 @@ const INGREDIENTS_PRICE = {
 
 class BurgerBuilder extends Component {
   state = {
-    ingredients: {
-      salad: 0,
-      meat: 0,
-      cheese: 0,
-      bacon: 0
-    },
+    ingredients: null,
     totalPrice: 3,
     purchasable: false,
     showOrderSummary: false,
-    serverIsFetching: false
+    serverIsFetching: false,
+    error: false
   };
+
+  componentDidMount() {
+    axios
+      .get('/ingredients.json')
+      .then(res => {
+        this.setState({ ingredients: res.data, error: false });
+      })
+      .catch(error => {
+        this.setState({ error: true });
+      });
+  }
 
   addIngredientsHandler = type => {
     const ingredientsCopy = { ...this.state.ingredients };
@@ -72,7 +80,7 @@ class BurgerBuilder extends Component {
   };
 
   checkoutHandler = () => {
-    const data = {
+    /* const data = {
       ingredients: this.state.ingredients,
       totalPrice: this.state.totalPrice,
       customer: {
@@ -93,43 +101,71 @@ class BurgerBuilder extends Component {
       .post('/orders.json', data)
       .then(res => {
         this.setState({ serverIsFetching: false, showOrderSummary: false });
-        console.log(res);
       })
       .catch(error => {
         this.setState({ serverIsFetching: false, showOrderSummary: false });
         console.log(error.message);
-      });
+      }); */
+    const totalPrice = `totalPrice=${this.state.totalPrice}`;
+    let searchString = [];
+    let ingredients = this.state.ingredients;
+    for (const key in ingredients) {
+      const ingredient = `${encodeURIComponent(key)}=${encodeURIComponent(
+        ingredients[key]
+      )}`;
+      searchString.push(ingredient, totalPrice);
+    }
+    this.props.history.push({
+      pathname: '/checkout/',
+      search: searchString.join('&')
+    });
   };
 
   render() {
-    const disabledBtnInfo = { ...this.state.ingredients };
-    for (let key in disabledBtnInfo) {
-      disabledBtnInfo[key] = disabledBtnInfo[key] <= 0;
+    let burgerAndBuilderControls = this.state.error ? (
+      <p>App can't be loaded. Please reload this page.</p>
+    ) : (
+      <Spinner />
+    );
+    let modalContent = null;
+
+    if (this.state.ingredients) {
+      const disabledBtnInfo = { ...this.state.ingredients };
+      for (let key in disabledBtnInfo) {
+        disabledBtnInfo[key] = disabledBtnInfo[key] <= 0;
+      }
+
+      burgerAndBuilderControls = (
+        <Aux>
+          <Burger ingredients={this.state.ingredients} />
+          <div>
+            <BuilderControls
+              addIngredient={this.addIngredientsHandler}
+              removeIngredient={this.removeIngredientsHandler}
+              disableBtn={disabledBtnInfo}
+              totalPrice={this.state.totalPrice}
+              purchasable={this.state.purchasable}
+              showOrderSummary={this.showOrderSummaryHandler}
+            />
+          </div>
+        </Aux>
+      );
+
+      modalContent = (
+        <OrderSummary
+          ingredients={this.state.ingredients}
+          totalPrice={this.state.totalPrice}
+          orderSummaryHandler={this.showOrderSummaryHandler}
+          checkoutHandler={this.checkoutHandler}
+        />
+      );
     }
 
-    let modalContent = (
-      <OrderSummary
-        ingredients={this.state.ingredients}
-        totalPrice={this.state.totalPrice}
-        orderSummaryHandler={this.showOrderSummaryHandler}
-        checkoutHandler={this.checkoutHandler}
-      />
-    );
     if (this.state.serverIsFetching) modalContent = <Spinner />;
 
     return (
       <Aux>
-        <Burger ingredients={this.state.ingredients} />
-        <div>
-          <BuilderControls
-            addIngredient={this.addIngredientsHandler}
-            removeIngredient={this.removeIngredientsHandler}
-            disableBtn={disabledBtnInfo}
-            totalPrice={this.state.totalPrice}
-            purchasable={this.state.purchasable}
-            showOrderSummary={this.showOrderSummaryHandler}
-          />
-        </div>
+        {burgerAndBuilderControls}
         <Modal
           show={this.state.showOrderSummary}
           toggleHandler={this.showOrderSummaryHandler}
@@ -141,4 +177,4 @@ class BurgerBuilder extends Component {
   }
 }
 
-export default BurgerBuilder;
+export default catchError(BurgerBuilder, axios);

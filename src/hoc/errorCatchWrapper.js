@@ -9,16 +9,28 @@ const catchError = (WrappedComponent, axios) =>
     };
 
     componentWillMount() {
-      axios.interceptors.response.use(req => {
+      this.reqInterceptor = axios.interceptors.request.use(req => {
         this.setState({ error: null });
+        return req;
       });
 
-      axios.interceptors.response.use(
+      this.resInterceptor = axios.interceptors.response.use(
         res => res,
         error => {
           this.setState({ error });
         }
       );
+    }
+
+    componentWillUnmount() {
+      console.log(
+        '[inside errorCatcher]',
+        this.reqInterceptor,
+        this.resInterceptor
+      );
+
+      axios.interceptors.request.eject(this.reqInterceptor);
+      axios.interceptors.response.eject(this.resInterceptor);
     }
 
     showModalHandler = () => {
@@ -28,10 +40,7 @@ const catchError = (WrappedComponent, axios) =>
     render() {
       return (
         <Aux>
-          <Modal
-            show={this.state.error}
-            showModalHandler={this.showModalHandler}
-          >
+          <Modal show={this.state.error} toggleHandler={this.showModalHandler}>
             {this.state.error ? this.state.error.message : null}
           </Modal>
           <WrappedComponent {...this.props} />
